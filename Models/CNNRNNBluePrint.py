@@ -19,6 +19,8 @@
 """
 # load the module
 import tensorflow as tf
+
+
 # define the model
 def buildHlaCNN_RNNModel(input_len, numberOfTokens, embDim, trainEmb,
                          embWeights=None):
@@ -34,49 +36,50 @@ def buildHlaCNN_RNNModel(input_len, numberOfTokens, embDim, trainEmb,
                         embedding layer.
     @return model: a tf.Keras model, the model constructed using the user defined parameters
     """
-           
-    assert input_len>9, """ The maximum length of the amino acid can not be 
+
+    assert input_len > 9, """ The maximum length of the amino acid can not be 
     shorter than 9 amino acids. your current input length is {}""".format(input_len)
-    
-    assert embDim>=1, """ Embedding dimension must be at least one, 
+
+    assert embDim >= 1, """ Embedding dimension must be at least one, 
     your input is {}""".format(embDim)
-    
-    assert isinstance(trainEmb,bool), """ train embedding should be a bool of 
+
+    assert isinstance(trainEmb, bool), """ train embedding should be a bool of 
     whether or not to train the weights of the embedding layer. 
     your current value is {}""".format(trainEmb)
-    
-    inputLayer=tf.keras.layers.Input((input_len,),name="InputLayer")
-    
-    if embWeights is  None: 
-            embeddingLayer=tf.keras.layers.Embedding(input_dim=numberOfTokens,
-                                     output_dim=embDim,
-                                     trainable=trainEmb,
-                                      name="EmbeddingLayer")(inputLayer)
-    else: 
-         if numberOfTokens != embWeights.shape[0] or embDim != embWeights.shape[1]:
+
+    inputLayer = tf.keras.layers.Input((input_len,), name="InputLayer")
+
+    if embWeights is None:
+        embeddingLayer = tf.keras.layers.Embedding(input_dim=numberOfTokens,
+                                                   output_dim=embDim,
+                                                   trainable=trainEmb,
+                                                   name="EmbeddingLayer")(inputLayer)
+    else:
+        if numberOfTokens != embWeights.shape[0] or embDim != embWeights.shape[1]:
             raise ValueError("""
                              The dimension of the weights matrix does not match 
                              the numOfToken or the embedding dimention. The function
                              expected a matrix of shape {} by {}, however, the 
                              provided matrix has shape {} by {}""".format(
-                             numberOfTokens,embDim,
-                             embWeights.shape[0],
-                             embWeights.shape[1]))
-         embeddingLayer=tf.keras.layers.Embedding(input_dim=numberOfTokens,
-                                             output_dim=embDim,
-                                             trainable=trainEmb,
-                                             weights=[embWeights])(inputLayer)
-    
-    cnn=tf.keras.layers.Conv1D(filters=36,padding="same",
-                               kernel_size=9,strides=1,
-                               name="1DConvLayer")(embeddingLayer)
-    lstm=tf.keras.layers.LSTM(units=12,name="LSTMLayer")(cnn)
-    
-    output=tf.keras.layers.Dense(units=1,activation="sigmoid",name="Dense")(lstm)
-    
-    model=tf.keras.models.Model(inputs=[inputLayer],outputs=[output])   
+                numberOfTokens, embDim,
+                embWeights.shape[0],
+                embWeights.shape[1]))
+        embeddingLayer = tf.keras.layers.Embedding(input_dim=numberOfTokens,
+                                                   output_dim=embDim,
+                                                   trainable=trainEmb,
+                                                   weights=[embWeights])(inputLayer)
+
+    cnn = tf.keras.layers.Conv1D(filters=36, padding="same",
+                                 kernel_size=9, strides=1,
+                                 name="1DConvLayer")(embeddingLayer)
+    lstm = tf.keras.layers.LSTM(units=12, name="LSTMLayer")(cnn)
+
+    output = tf.keras.layers.Dense(units=1, activation="sigmoid", name="Dense")(lstm)
+
+    model = tf.keras.models.Model(inputs=[inputLayer], outputs=[output])
     return model
-  
+
+
 def buildHlaCNN_RNNModelOneHot(input_len, numberOfTokens):
     """
     @brief The function build a CNN-RNN peptide-HLAII interaction model and train it 
@@ -88,20 +91,17 @@ def buildHlaCNN_RNNModelOneHot(input_len, numberOfTokens):
     one-hot encoding vectors. 
     @return model: a tf.Keras model, the model constructed using the model parameters.
     """
-    assert input_len>9, """ The maximum length of the amino acid can not be 
+    assert input_len > 9, """ The maximum length of the amino acid can not be 
     shorter than 9 amino acids. your current input length is {}""".format(input_len)
-    
-    inputLayer=tf.keras.layers.Input((input_len,numberOfTokens),name="InputLayer")
-    
-    cnn=tf.keras.layers.Conv1D(filters=36,padding="same",
-                               kernel_size=9,strides=1,
-                               name="1DConvLayer")(inputLayer)
-    lstm=tf.keras.layers.LSTM(units=12,name="LSTMLayer")(cnn)
-    
-    output=tf.keras.layers.Dense(units=1,activation="sigmoid",name="Dense")(lstm)
-    
-    model=tf.keras.models.Model(inputs=[inputLayer],outputs=[output])   
+
+    inputLayer = tf.keras.layers.Input((input_len, numberOfTokens), name="InputLayer")
+
+    cnn = tf.keras.layers.Conv1D(filters=36, padding="same",
+                                 kernel_size=9, strides=1,
+                                 name="1DConvLayer")(inputLayer)
+    lstm = tf.keras.layers.LSTM(units=12, name="LSTMLayer")(cnn)
+
+    output = tf.keras.layers.Dense(units=1, activation="sigmoid", name="Dense")(lstm)
+
+    model = tf.keras.models.Model(inputs=[inputLayer], outputs=[output])
     return model
-
-
-
